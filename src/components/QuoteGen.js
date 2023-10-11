@@ -1,4 +1,4 @@
-import React ,{ useState }from "react";
+import React ,{ useState, useEffect }from "react";
 import { BsTwitter } from 'react-icons/bs';
 import { BsFacebook } from "react-icons/bs";
 import { BiSolidQuoteRight } from 'react-icons/bi';
@@ -6,10 +6,11 @@ import { BiSolidQuoteLeft } from 'react-icons/bi';
 import '../stylesheets/quotegen.css' 
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 
+let dbUrl = 'https://gist.githubusercontent.com/camperbot/5a022b72e96c4c9585c32bf6a75f62d9/raw/e3c6895ce42069f0ee7e991229064f167fe8ccdc/quotes.json'
 
 function QuoteGen( {color, updateColor} ) {
 
-  const quotesData = [
+  /*const quotesData = [
     {
         "quote": "Be yourself; everyone else is already taken.",
         "author": "Oscar Wilde",
@@ -1557,24 +1558,42 @@ function QuoteGen( {color, updateColor} ) {
             "Wisdom"
         ]
     }
-]
+] */
   
-  const [quote, setQuote] = useState('')
+  
+  
+  const [quotesData, setQuotesData] = useState(null)
+  const [quote, setQuote] = useState({quote: "I've got this!", author:"Joe Mint"})
+  const [randomNumber, setRandomNumber] = useState(1)
+  
 
-  const getRandomQuote = () => {
-    const randomIndex = Math.floor(Math.random() * quotesData.length);
-    const quote = quotesData[randomIndex];
-    setQuote(quote);
+  const fetchQuotes = async (url) => {
+      const response = await fetch(url)
+      const parsedJSON = await response.json()
+      setQuotesData(parsedJSON.quotes)
+      
   }
 
+  useEffect(()=> {
+    fetchQuotes(dbUrl)
+  }, [dbUrl])
+
+
+  const getRandomQuote = () => {
+    const randomIndex = Math.floor(quotesData.length * Math.random());
+    setRandomNumber(randomIndex)
+    setQuote(quotesData[randomNumber]);
+  }
+  
+
   /* This function helps to do both actions at the same time onClick*/ 
+  
   const handleButton = () => {
     getRandomQuote();
     updateColor();
   }
 
-  window.onload = getRandomQuote
-
+  
   return(
     <div className='quotegen-main'>
       <div className='quote-text-div'>
@@ -1598,7 +1617,7 @@ function QuoteGen( {color, updateColor} ) {
             className='twitter-button'
             style={{backgroundColor:color}}
             id='tweet-quote'
-            href='twitter.com/intent/tweet'
+            href={`https://www.twitter.com/intent/tweet?text=${quote.quote} - ${quote.author}`}
             target='_blank'>
               <BsTwitter/>
           </a>
